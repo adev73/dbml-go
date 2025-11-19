@@ -203,6 +203,7 @@ var (
 		"float":     jen.Float64(),
 		"float32":   jen.Float32(),
 		"float64":   jen.Float64(),
+		"real":      jen.Float64(),
 		"bool":      jen.Bool(),
 		"boolean":   jen.Bool(),
 		"text":      jen.String(),
@@ -212,7 +213,8 @@ var (
 		"rune":      jen.Rune(),
 		"timestamp": jen.Int(),
 		"datetime":  jen.Qual("time", "Time"),
-		"uuid":      jen.Qual("github.com/google/uuid", "uuid.UUID"),
+		"uuid":      jen.Qual("github.com/google/uuid", "UUID"),
+		"json":      jen.Qual("json", "RawMessage"),
 	}
 )
 
