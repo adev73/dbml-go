@@ -79,9 +79,10 @@ const (
 
 // Relationship ...
 type Relationship struct {
-	From string
-	To   string
-	Type RelationshipType
+	From   string
+	To     string
+	Type   RelationshipType
+	Delete string // Delete option (cascade, set null)
 }
 
 // RelationshipMap ...

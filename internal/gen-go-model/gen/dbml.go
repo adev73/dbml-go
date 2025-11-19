@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -87,7 +86,7 @@ func dbmlReader(from string) (io.Reader, error) {
 	if resp.StatusCode != 200 {
 		return nil, fmt.Errorf("%s NOT FOUND", dbdURL)
 	}
-	bodyJSON, err := ioutil.ReadAll(resp.Body)
+	bodyJSON, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
 	}

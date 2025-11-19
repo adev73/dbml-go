@@ -2,7 +2,7 @@ package token
 
 import "strings"
 
-//Token ...
+// Token ...
 type Token int
 
 //go:generate stringer -type=Token
@@ -16,6 +16,7 @@ const (
 	// Identifiers and basic type literals
 	// (these tokens stand for classes of literals)
 	IDENT   // main
+	BOOL    // true | false
 	INT     // 12345
 	FLOAT   // 123.45
 	IMAG    // 123.45i
@@ -90,6 +91,7 @@ var Tokens = [...]string{
 	COMMENT: "COMMENT",
 
 	IDENT:   "IDENT",
+	BOOL:    "BOOLEAN",
 	INT:     "INT",
 	FLOAT:   "FLOAT",
 	IMAG:    "IMAG",

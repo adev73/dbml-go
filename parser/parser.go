@@ -35,8 +35,13 @@ func NewParser(s *scanner.Scanner) *Parser {
 // Parse ...
 func (p *Parser) Parse() (*core.DBML, error) {
 	dbml := &core.DBML{}
+	readAhead := false // Define a flag in case we have to read ahead for optional elements (e.g. refs with no delete clause)
+
 	for {
-		p.next()
+		if !readAhead {
+			readAhead = false
+			p.next()
+		}
 		switch p.token {
 		case token.PROJECT:
 			project, err := p.parseProject()
@@ -67,6 +72,8 @@ func (p *Parser) Parse() (*core.DBML, error) {
 			// * Check refs is valid or not (by tables map)
 			dbml.Refs = append(dbml.Refs, *ref)
 
+			readAhead = true // Refs might have an optional bit, so we've already read the next token
+
 		case token.ENUM:
 			enum, err := p.parseEnum()
 			if err != nil {
@@ -94,6 +101,7 @@ func (p *Parser) Parse() (*core.DBML, error) {
 func (p *Parser) parseTableGroup() (*core.TableGroup, error) {
 	tableGroup := &core.TableGroup{}
 	p.next()
+
 	if p.token != token.IDENT && p.token != token.DSTRING {
 		return nil, fmt.Errorf("TableGroup name is invalid: %s", p.lit)
 	}
@@ -161,7 +169,7 @@ func (p *Parser) parseRefs() (*core.Ref, error) {
 	p.next()
 
 	// Handle for Ref <optional_name>...
-	if p.token == token.IDENT {
+	if p.token == token.IDENT || p.token == token.DSTRING {
 		ref.Name = p.lit
 		p.next()
 	}
@@ -182,6 +190,7 @@ func (p *Parser) parseRefs() (*core.Ref, error) {
 
 		for {
 			if p.token == token.RBRACE {
+				p.next() // Because readahead. Not sure if refs in this form can have a "[delete: <style>]" tail, so ignore for now.
 				return ref, nil
 			} else if p.token == token.IDENT || p.token == token.DSTRING {
 				rel, err := p.parseRelationship()
@@ -208,6 +217,19 @@ func (p *Parser) parseRelationship() (*core.Relationship, error) {
 	rel.From = p.lit
 
 	p.next()
+
+	if p.token == token.PERIOD {
+		// rel.From may be split into two DSTRINGs
+		p.next()
+		if p.token != token.IDENT && p.token != token.DSTRING {
+			return nil, p.expect("(rel from) table.column_name")
+		}
+
+		rel.From = fmt.Sprintf("%s.%s", rel.From, p.lit)
+		p.next()
+
+	}
+
 	if reltype, ok := core.RelationshipMap[p.token]; ok {
 		rel.Type = reltype
 	} else {
@@ -215,10 +237,64 @@ func (p *Parser) parseRelationship() (*core.Relationship, error) {
 	}
 
 	p.next()
-	if p.token != token.IDENT {
+	switch p.token {
+	case token.IDENT:
+		rel.To = p.lit
+	case token.DSTRING:
+		rel.To = p.lit
+		if !strings.Contains(p.lit, ".") {
+			p.next()
+			if p.token != token.PERIOD {
+				return nil, p.expect(".")
+			}
+			p.next()
+			if p.token != token.IDENT && p.token != token.DSTRING {
+				return nil, p.expect("(rel from) table.column_name")
+			}
+			rel.To = fmt.Sprintf("%s.%s", rel.To, p.lit)
+		}
+	default:
 		return nil, p.expect("(rel to) table.column_name")
 	}
-	rel.To = p.lit
+
+	// Check for optional "[delete: <type>]" section
+	p.next()
+	if p.token == token.LBRACK {
+		// Yep, got delete
+		p.next()
+		if p.lit != "delete" {
+			return nil, p.expect("[delete")
+		}
+		p.next()
+		if p.token != token.COLON {
+			return nil, p.expect("[delete:")
+		}
+		p.next()
+		if p.token != token.IDENT && p.token != token.DSTRING && p.token != token.SET {
+			return nil, p.expect("[delete: <cascade|set null>]")
+		}
+		rel.Delete = p.lit
+
+		p.next()
+		if p.token == token.RBRACK {
+			// Done!
+			p.next() // For readahead
+			return rel, nil
+		}
+		if p.token != token.IDENT && p.token != token.DSTRING && p.token != token.NULL && p.token != token.DEFAULT {
+			return nil, p.expect("[delete: set <null | default>]")
+		}
+		rel.Delete = fmt.Sprintf("%s %s", rel.Delete, p.lit)
+
+		p.next()
+		if p.token != token.RBRACK {
+			return nil, p.expect("]")
+		}
+
+		p.next() // Readahead
+
+	}
+
 	return rel, nil
 }
 
@@ -387,6 +463,15 @@ func (p *Parser) parseColumn(name string) (*core.Column, error) {
 	column := &core.Column{
 		Name: name,
 	}
+
+	// Handle Postgres '"character varying(xxx)"' = varchar(xxx)
+	if strings.HasPrefix(p.lit, "character varying(") {
+		// *sigh*
+		p.lit = strings.Replace(p.lit, "character varying", "varchar", 1)
+		//p.lit = strings.ReplaceAll(p.lit, "\"", "")
+		p.token = token.IDENT
+	}
+
 	if p.token != token.IDENT {
 		return nil, p.expect("int, varchar,...")
 	}
@@ -471,11 +556,21 @@ func (p *Parser) parseColumnSettings() (*core.ColumnSetting, error) {
 			}
 			p.next()
 			switch p.token {
-			case token.STRING, token.DSTRING, token.TSTRING, token.INT, token.FLOAT, token.EXPR:
+			case token.STRING, token.DSTRING, token.TSTRING, token.INT, token.FLOAT, token.EXPR, token.BOOL:
 				//TODO:
 				//	* handle default value by expr
 				//	* validate default value by type
 				columnSetting.Default = p.lit
+			case token.IDENT:
+				// Is it a boolean?
+				if strings.EqualFold(p.lit, "true") || strings.EqualFold(p.lit, "false") {
+					// Acceptable
+					columnSetting.Default = p.lit
+				} else {
+					// Maybe not acceptable
+					return nil, p.expect("default value")
+				}
+
 			default:
 				return nil, p.expect("default value")
 			}
