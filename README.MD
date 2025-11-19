@@ -7,7 +7,7 @@ DBML-go is a Go parser for [DBML](https://www.dbml.org) syntax.
 Go get
 
 ```bash
-go install github.com/Bass-Peerapon/dbml-go@latest
+go install github.com/adev73/dbml-go@latest
 ```
 
 ## Quick start
@@ -19,8 +19,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/Bass-Peerapon/dbml-go/parser"
-	"github.com/Bass-Peerapon/dbml-go/scanner"
+	"github.com/adev73/dbml-go/parser"
+	"github.com/adev73/dbml-go/scanner"
 )
 
 func main() {

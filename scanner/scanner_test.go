@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/Bass-Peerapon/dbml-go/token"
+	"github.com/adev73/dbml-go/token"
 )
 
 func sc(str string) *Scanner {

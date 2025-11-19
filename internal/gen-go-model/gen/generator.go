@@ -5,9 +5,9 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/adev73/dbml-go/core"
+	"github.com/adev73/dbml-go/internal/gen-go-model/genutil"
 	"github.com/dave/jennifer/jen"
-	"github.com/Bass-Peerapon/dbml-go/core"
-	"github.com/Bass-Peerapon/dbml-go/internal/gen-go-model/genutil"
 )
 
 type generator struct {
@@ -188,28 +188,29 @@ const primeTypePattern = `^(\w+)(\(d+\))?`
 var (
 	regexType    = regexp.MustCompile(primeTypePattern)
 	builtinTypes = map[string]jen.Code{
-		"int":       jen.Int(),
-		"int8":      jen.Int8(),
-		"int16":     jen.Int16(),
-		"int32":     jen.Int32(),
-		"int64":     jen.Int64(),
-		"bigint":    jen.Int64(),
-		"uint":      jen.Uint(),
-		"uint8":     jen.Uint8(),
-		"uint16":    jen.Uint16(),
-		"uint32":    jen.Uint32(),
-		"uint64":    jen.Uint64(),
-		"float":     jen.Float64(),
-		"float32":   jen.Float32(),
-		"float64":   jen.Float64(),
-		"bool":      jen.Bool(),
-		"text":      jen.String(),
-		"varchar":   jen.String(),
-		"char":      jen.String(),
-		"byte":      jen.Byte(),
-		"rune":      jen.Rune(),
-		"timestamp": jen.Int(),
-		"datetime":  jen.Qual("time", "Time"),
+		"int":               jen.Int(),
+		"int8":              jen.Int8(),
+		"int16":             jen.Int16(),
+		"int32":             jen.Int32(),
+		"int64":             jen.Int64(),
+		"bigint":            jen.Int64(),
+		"uint":              jen.Uint(),
+		"uint8":             jen.Uint8(),
+		"uint16":            jen.Uint16(),
+		"uint32":            jen.Uint32(),
+		"uint64":            jen.Uint64(),
+		"float":             jen.Float64(),
+		"float32":           jen.Float32(),
+		"float64":           jen.Float64(),
+		"bool":              jen.Bool(),
+		"text":              jen.String(),
+		"varchar":           jen.String(),
+		"character varying": jen.String(),
+		"char":              jen.String(),
+		"byte":              jen.Byte(),
+		"rune":              jen.Rune(),
+		"timestamp":         jen.Int(),
+		"datetime":          jen.Qual("time", "Time"),
 	}
 )
 

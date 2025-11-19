@@ -6,7 +6,7 @@ package cmd
 import (
 	"os"
 
-	"github.com/Bass-Peerapon/dbml-go/internal/gen-go-model/gen"
+	"github.com/adev73/dbml-go/internal/gen-go-model/gen"
 	"github.com/spf13/cobra"
 )
 

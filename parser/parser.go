@@ -6,9 +6,9 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/Bass-Peerapon/dbml-go/core"
-	"github.com/Bass-Peerapon/dbml-go/scanner"
-	"github.com/Bass-Peerapon/dbml-go/token"
+	"github.com/adev73/dbml-go/core"
+	"github.com/adev73/dbml-go/scanner"
+	"github.com/adev73/dbml-go/token"
 )
 
 // Parser declaration
