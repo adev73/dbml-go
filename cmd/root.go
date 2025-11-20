@@ -60,18 +60,18 @@ func init() {
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
 	rootCmd.Flags().
-		StringVarP(&from, "from", "f", "database.dbml", "source of dbml, can be https://dbdiagram.io/... | fire_name.dbml")
+		StringVarP(&from, "input", "i", "database.dbml", "source of dbml, can be https://dbdiagram.io/... | file_name.dbml | a directory of .dbml files")
 	rootCmd.Flags().StringVarP(&out, "out", "o", "model", "output folder")
 	rootCmd.Flags().
 		StringVarP(&gopackage, "package", "p", "model", "package name for generated files")
 	rootCmd.Flags().
-		StringArrayVarP(&fieldtags, "fieldtags", "t", []string{"db", "json", "mapstructure"}, "go field tags to generate")
+		StringArrayVarP(&fieldtags, "field-tags", "t", []string{"db", "json", "mapstructure"}, "go field tags to generate")
 	rootCmd.Flags().
-		BoolVar(&shouldGenTblName, "gen-table-name", false, "generate \"TableName\" function for models")
+		BoolVarP(&shouldGenTblName, "table-name-func", "n", false, "generate \"TableName\" function for models")
 	rootCmd.Flags().
-		BoolVar(&rememberAlias, "remember-alias", false, "remember table alias (only when 'from' is a directory)")
+		BoolVarP(&rememberAlias, "remember-alias", "a", false, "remember table alias (only when 'input' is a directory)")
 	rootCmd.Flags().
-		BoolVar(&recursive, "recursive", false, "recursively search directories (only when 'from' is a directory)")
+		BoolVarP(&recursive, "recursive", "R", false, "recursively search directories (only when 'input' is a directory)")
 	rootCmd.Flags().
-		StringVarP(&exclude, "exclude", "E", "", "regex pattern to exclude files (only when 'from' is a directory)")
+		StringVarP(&exclude, "exclude", "e", "", "regex pattern of files to exclude (only when 'input' is a directory)")
 }
